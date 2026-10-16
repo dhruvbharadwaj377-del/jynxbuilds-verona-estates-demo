@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import './App.css'
+import EstateExperience from './experience/EstateExperience.jsx'
 
 const IMG = '/Images'
 
@@ -39,10 +40,13 @@ const amenities = [
 function App() {
   const [menu, setMenu] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [interest, setInterest] = useState('')
+  const [enquiry, setEnquiry] = useState(null)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 80)
-    window.addEventListener('scroll', onScroll)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
 
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
@@ -67,7 +71,8 @@ function App() {
           <span>VÉRONA</span>
         </a>
 
-        <nav className="nav-links">
+        <nav className="nav-links" aria-label="Primary">
+          <a href="#walkthrough">Walkthrough</a>
           <a href="#residences">Residences</a>
           <a href="#philosophy">Philosophy</a>
           <a href="#experience">Experience</a>
@@ -82,7 +87,9 @@ function App() {
         <button
           className={`menu-toggle ${menu ? 'is-open' : ''}`}
           onClick={() => setMenu(!menu)}
-          aria-label="Menu"
+          aria-label={menu ? 'Close menu' : 'Open menu'}
+          aria-expanded={menu}
+          aria-controls="mobile-nav"
         >
           <span />
           <span />
@@ -91,104 +98,57 @@ function App() {
 
       {/* ================= MOBILE MENU ================= */}
 
-      <div className={`mobile-nav ${menu ? 'mobile-nav--open' : ''}`}>
-        <div className="mobile-nav-inner">
+      <div
+        id="mobile-nav"
+        className={`mobile-nav ${menu ? 'mobile-nav--open' : ''}`}
+        inert={!menu}
+      >
+        <nav className="mobile-nav-inner" aria-label="Mobile">
           <p className="mobile-nav-kicker">VÉRONA ESTATES / 2026</p>
 
-          <a href="#residences" onClick={closeMenu}>
+          <a href="#walkthrough" onClick={closeMenu}>
             <span>01</span>
+            Walkthrough
+            <b>↗</b>
+          </a>
+
+          <a href="#residences" onClick={closeMenu}>
+            <span>02</span>
             Residences
             <b>↗</b>
           </a>
 
           <a href="#philosophy" onClick={closeMenu}>
-            <span>02</span>
+            <span>03</span>
             Philosophy
             <b>↗</b>
           </a>
 
           <a href="#experience" onClick={closeMenu}>
-            <span>03</span>
+            <span>04</span>
             Experience
             <b>↗</b>
           </a>
 
           <a href="#address" onClick={closeMenu}>
-            <span>04</span>
+            <span>05</span>
             The Address
             <b>↗</b>
           </a>
 
           <a href="#enquire" onClick={closeMenu}>
-            <span>05</span>
+            <span>06</span>
             Private Enquiry
             <b>↗</b>
           </a>
-        </div>
+        </nav>
       </div>
 
       <main id="top">
 
-        {/* ================= HERO ================= */}
+        {/* ================= HERO + 3D WALKTHROUGH ================= */}
 
-        <section className="hero">
-
-          <div className="hero-media">
-            <img src={`${IMG}/hero.jpg`} alt="VÉRONA residence" />
-          </div>
-
-          <div className="hero-vignette" />
-
-          <div className="hero-meta hero-meta--top">
-            <span>GURUGRAM</span>
-            <span>NEW DELHI</span>
-            <span>MMXXIV</span>
-          </div>
-
-          <div className="hero-meta hero-meta--side">
-            <span>ESTATES / ARCHITECTURE / LIVING</span>
-          </div>
-
-          <div className="hero-center">
-
-            <div className="hero-kicker">
-              <span className="hero-line" />
-              <span>THE ART OF LIVING</span>
-              <span className="hero-line" />
-            </div>
-
-            <h1>
-              <span>VÉRONA</span>
-            </h1>
-
-            <div className="hero-subline">
-              <span>PRIVATE RESIDENCES</span>
-              <span>01—06</span>
-              <span>INDIA</span>
-            </div>
-
-          </div>
-
-          <div className="hero-bottom">
-
-            <div className="hero-statement">
-              Homes
-              <br />
-              <i>that rise above.</i>
-            </div>
-
-            <a href="#residences" className="hero-scroll">
-              <span className="hero-scroll-circle">↓</span>
-              <span>SCROLL<br />TO EXPLORE</span>
-            </a>
-
-          </div>
-
-          <div className="hero-vertical">
-            <span>VÉRONA ESTATES</span>
-          </div>
-
-        </section>
+        <EstateExperience />
 
         {/* ================= OPENING STATEMENT ================= */}
 
@@ -304,14 +264,19 @@ function App() {
                   {residence.no}
                 </div>
 
-                <div className="residence-image">
-                  <img src={residence.image} alt={residence.title} />
+                <a
+                  href="#enquire"
+                  className="residence-image"
+                  onClick={() => setInterest(residence.title)}
+                  aria-label={`Enquire about ${residence.title}`}
+                >
+                  <img src={residence.image} alt="" loading="lazy" />
 
-                  <div className="residence-hover">
-                    <span>VIEW RESIDENCE</span>
+                  <div className="residence-hover" aria-hidden="true">
+                    <span>ENQUIRE</span>
                     <strong>↗</strong>
                   </div>
-                </div>
+                </a>
 
                 <div className="residence-details">
 
@@ -323,7 +288,13 @@ function App() {
 
                   <div className="residence-side">
                     <span>VÉRONA / {residence.no}</span>
-                    <span>EXPLORE ↗</span>
+                    <a
+                      href="#enquire"
+                      className="residence-link"
+                      onClick={() => setInterest(residence.title)}
+                    >
+                      ENQUIRE ↗
+                    </a>
                   </div>
 
                 </div>
@@ -612,22 +583,93 @@ function App() {
 
           <div className="final-content">
 
-            <p className="eyebrow">PRIVATE VIEWINGS</p>
+            <div className="final-intro">
+              <p className="eyebrow">PRIVATE VIEWINGS</p>
 
-            <h2>
-              Begin your
-              <br />
-              <i>next chapter.</i>
-            </h2>
+              <h2>
+                Begin your
+                <br />
+                <i>next chapter.</i>
+              </h2>
 
-            <p>
-              Discover a different way of living.
-            </p>
+              <p>
+                Tell us which residence you would like to see, and how you
+                would like to see it.
+              </p>
+            </div>
 
-            <a href="mailto:hello@veronaestates.in" className="final-button">
-              <span>MAKE A PRIVATE ENQUIRY</span>
-              <strong>↗</strong>
-            </a>
+            {enquiry ? (
+              <div className="enquiry enquiry--sent" role="status">
+                <p className="eyebrow">THANK YOU{enquiry.name ? `, ${enquiry.name.toUpperCase()}` : ''}</p>
+                <h3>Your enquiry is ready.</h3>
+                <p>
+                  VÉRONA is a concept demo by JynxBuilds, so nothing has been
+                  sent. On a live site this would go straight to the sales
+                  team.
+                </p>
+                <button type="button" className="final-button" onClick={() => setEnquiry(null)}>
+                  <span>START AGAIN</span>
+                  <strong aria-hidden="true">↺</strong>
+                </button>
+              </div>
+            ) : (
+              <form
+                className="enquiry"
+                onSubmit={(event) => {
+                  event.preventDefault()
+                  const data = new FormData(event.currentTarget)
+                  setEnquiry({ name: String(data.get('name') || '').trim().split(' ')[0] })
+                }}
+              >
+                <div className="enquiry-row">
+                  <label>
+                    <span>Name</span>
+                    <input name="name" type="text" autoComplete="name" required />
+                  </label>
+                  <label>
+                    <span>Email</span>
+                    <input name="email" type="email" autoComplete="email" required />
+                  </label>
+                </div>
+
+                <label>
+                  <span>Residence</span>
+                  <select
+                    name="residence"
+                    value={interest}
+                    onChange={(event) => setInterest(event.target.value)}
+                  >
+                    <option value="">Not sure yet</option>
+                    {residences.map((residence) => (
+                      <option key={residence.no} value={residence.title}>
+                        {residence.title} — {residence.location}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <fieldset>
+                  <legend>Viewing</legend>
+                  <label className="enquiry-choice">
+                    <input type="radio" name="viewing" value="in-person" defaultChecked />
+                    <span>In person</span>
+                  </label>
+                  <label className="enquiry-choice">
+                    <input type="radio" name="viewing" value="guided-3d" />
+                    <span>Guided 3D walkthrough</span>
+                  </label>
+                </fieldset>
+
+                <button type="submit" className="final-button">
+                  <span>REQUEST A PRIVATE VIEWING</span>
+                  <strong aria-hidden="true">↗</strong>
+                </button>
+
+                <p className="enquiry-note">
+                  Concept demo — this form does not send any data.
+                </p>
+              </form>
+            )}
 
           </div>
 
@@ -674,7 +716,7 @@ function App() {
 
           <div className="footer-column">
             <span>CONTACT</span>
-            <a href="mailto:hello@veronaestates.in">
+            <a href="#enquire">
               Private Enquiry
             </a>
             <a href="#top">Back to top ↑</a>
@@ -682,9 +724,15 @@ function App() {
 
         </div>
 
+        <p className="footer-disclaimer">
+          VÉRONA Estates is a fictional brand created by JynxBuilds as a
+          concept demo. Residences, locations, imagery and the 3D residence are
+          illustrative and do not represent real listings.
+        </p>
+
         <div className="footer-bottom">
-          <span>© 2026 VÉRONA ESTATES</span>
-          <span>ALL RIGHTS RESERVED</span>
+          <span>© 2026 VÉRONA ESTATES — CONCEPT</span>
+          <span>NOT A REAL DEVELOPMENT</span>
           <span>BUILT TO BE SEEN — JYNXBUILDS</span>
         </div>
 
