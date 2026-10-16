@@ -210,7 +210,7 @@ function App() {
         {/* ================= FULL BLEED DETAIL ================= */}
 
         <section className="cinema-image">
-          <img src={`${IMG}/detail.jpg`} alt="Architectural detail" />
+          <img src={`${IMG}/detail.jpg`} alt="Architectural detail" loading="lazy" decoding="async" />
 
           <div className="cinema-overlay" />
 
@@ -333,7 +333,7 @@ function App() {
         <section id="philosophy" className="philosophy">
 
           <div className="philosophy-photo">
-            <img src={`${IMG}/living-room.jpg`} alt="Luxury VÉRONA interior" />
+            <img src={`${IMG}/living-room.jpg`} alt="Luxury VÉRONA interior" loading="lazy" decoding="async" />
 
             <div className="photo-index">
               <span>03</span>
@@ -405,7 +405,7 @@ function App() {
           <div className="editorial-layout">
 
             <div className="editorial-main">
-              <img src={`${IMG}/bedroom.jpg`} alt="VÉRONA bedroom" />
+              <img src={`${IMG}/bedroom.jpg`} alt="VÉRONA bedroom" loading="lazy" decoding="async" />
 
               <div className="editorial-label">
                 <span>01</span>
@@ -424,7 +424,7 @@ function App() {
             </div>
 
             <div className="editorial-small">
-              <img src={`${IMG}/kitchen.jpg`} alt="VÉRONA kitchen" />
+              <img src={`${IMG}/kitchen.jpg`} alt="VÉRONA kitchen" loading="lazy" decoding="async" />
 
               <div className="editorial-label">
                 <span>02</span>
@@ -441,7 +441,7 @@ function App() {
         <section id="experience" className="experience">
 
           <div className="experience-image">
-            <img src={`${IMG}/pool.jpg`} alt="VÉRONA infinity pool" />
+            <img src={`${IMG}/pool.jpg`} alt="VÉRONA infinity pool" loading="lazy" decoding="async" />
 
             <div className="experience-image-word">
               EXPERIENCE
@@ -495,17 +495,17 @@ function App() {
         <section className="triptych">
 
           <div>
-            <img src={`${IMG}/clubhouse.jpg`} alt="VÉRONA clubhouse" />
+            <img src={`${IMG}/clubhouse.jpg`} alt="VÉRONA clubhouse" loading="lazy" decoding="async" />
             <span>THE CLUBHOUSE</span>
           </div>
 
           <div>
-            <img src={`${IMG}/amenity.jpg`} alt="VÉRONA gardens" />
+            <img src={`${IMG}/amenity.jpg`} alt="VÉRONA gardens" loading="lazy" decoding="async" />
             <span>THE GARDENS</span>
           </div>
 
           <div>
-            <img src={`${IMG}/location.jpg`} alt="VÉRONA location" />
+            <img src={`${IMG}/location.jpg`} alt="VÉRONA location" loading="lazy" decoding="async" />
             <span>THE ADDRESS</span>
           </div>
 
@@ -559,7 +559,7 @@ function App() {
           </div>
 
           <div className="address-photo">
-            <img src={`${IMG}/location.jpg`} alt="Gurugram skyline" />
+            <img src={`${IMG}/location.jpg`} alt="Gurugram skyline" loading="lazy" decoding="async" />
 
             <div className="address-marker">
               <span>V</span>
@@ -577,7 +577,7 @@ function App() {
 
         <section id="enquire" className="final-cta">
 
-          <img src={`${IMG}/hero.jpg`} alt="" />
+          <img src={`${IMG}/hero.jpg`} alt="" loading="lazy" decoding="async" />
 
           <div className="final-overlay" />
 

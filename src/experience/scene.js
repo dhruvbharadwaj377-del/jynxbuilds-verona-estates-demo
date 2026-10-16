@@ -8,6 +8,7 @@
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import { holdProgress } from './timeline.js'
 
 // ---------------------------------------------------------------------------
 // Palette — mirrors the site's ink / cream / bronze tokens
@@ -48,7 +49,6 @@ const MOODS = {
 
 const lerp = (a, b, t) => a + (b - a) * t
 const clamp01 = (v) => Math.min(1, Math.max(0, v))
-const smooth = (t) => t * t * (3 - 2 * t)
 
 // Seeded random so the composition is identical on every visit.
 function seeded(seed) {
@@ -730,13 +730,7 @@ export function createEstateScene({ canvas, chapters, quality = 'high', onRender
 
   // Hold each chapter's framing for a moment before travelling on, so the
   // camera "arrives" at each view while the text is being read.
-  function pathParam(progress) {
-    const f = clamp01(progress) * segments
-    const i = Math.min(Math.floor(f), segments - 1)
-    const local = f - i
-    const travel = smooth(clamp01((local - 0.18) / 0.64))
-    return (i + travel) / segments
-  }
+  const pathParam = (progress) => holdProgress(progress, segments)
 
   // ---------------- State & loop ----------------
 

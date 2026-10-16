@@ -14,22 +14,38 @@ npm run preview  # serve the production build
 npm run lint
 ```
 
-## The 3D walkthrough (`src/experience/`)
+## The walkthrough (`src/experience/`)
 
-- `chapters.js` — the story: one entry per scroll chapter with its camera
-  keyframe, hotspots and fallback photograph. Edit this to change the tour.
-- `scene.js` — procedural Three.js residence (no model files). Loaded with a
-  dynamic `import()` so three.js stays out of the initial bundle. Renders on
-  demand only — no frames while idle or offscreen.
-- `EstateExperience.jsx` — sticky stage, scroll → camera progress, hotspots,
-  Dusk/Night lighting, 3D on/off toggle.
-- `experience.css` — styles, using the site tokens from `App.css`.
+The hero is a five-chapter walkthrough driven by scroll. It has three
+interchangeable visual layers, chosen automatically (the visitor can switch
+with the Film / 3D / Photos control):
 
-Fallbacks: without WebGL (or with Save-Data on), or if the scene fails, the
-same chapters play over the existing photography. With reduced motion the
-camera cuts between views instead of flying, and pointer parallax is off.
-Smaller screens and touch devices get a lighter scene (no shadows, fewer
-objects, capped pixel ratio).
+1. **Film:** a scroll-scrubbed architectural film. Active only once the
+   footage and `src/experience/film/verona-film.json` exist. **The film has
+   not been produced yet.** See [`ASSET_CREATION.md`](ASSET_CREATION.md) for
+   the asset contract, shot list, prompts and tested export settings.
+2. **3D:** the procedural Three.js residence. This is the default until the
+   film exists, and the fallback when the film is missing, fails, decodes too
+   slowly, or reduced motion is on.
+3. **Photos:** the chapter photography. Used with Save-Data, without WebGL,
+   or when both of the above fail.
+
+Files:
+
+- `chapters.js`: the story. Each chapter has its 3D camera keyframe, feature
+  notes and fallback photograph.
+- `timeline.js`: the shared scroll → journey mapping, with holds at each
+  chapter.
+- `film.js`: manifest validation, the guarded download, and the
+  scroll-scrub player (one seek in flight, slow-decode detection).
+- `scene.js`: the procedural Three.js residence. It is lazy-loaded and
+  renders on demand only.
+- `EstateExperience.jsx`: the sticky stage, view selection, feature points,
+  chapter rail and lighting control.
+- `experience.css`: styles, using the site tokens from `App.css`.
+
+Only the active layer's assets are downloaded. Under reduced motion, the
+journey cuts between chapter views instead of moving.
 
 ---
 

@@ -31,6 +31,7 @@
 
 .estate-stills,
 .estate-stills img,
+.estate-video,
 .estate-canvas,
 .estate-scrim,
 .estate-hotspots {
@@ -61,6 +62,19 @@
 }
 
 .estate--ready .estate-canvas {
+  opacity: 1;
+}
+
+/* The film: a decorative, scroll-driven layer over its own poster frame */
+.estate-video {
+  display: block;
+  object-fit: cover;
+  background: transparent;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+
+.estate--ready .estate-video {
   opacity: 1;
 }
 
@@ -359,8 +373,11 @@
   bottom: 32px;
 
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-end;
   gap: 10px;
+  max-width: calc(100% - 8vw);
 
   font-family: 'Manrope', sans-serif;
   font-size: 10px;
@@ -397,8 +414,7 @@
   backdrop-filter: blur(8px);
 }
 
-.estate-mood button,
-.estate-toggle {
+.estate-mood button {
   min-height: 36px;
   padding: 0 14px;
   border: 0;
@@ -420,14 +436,7 @@
   color: var(--ink);
 }
 
-.estate-toggle {
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  background: rgba(14, 12, 10, 0.4);
-  backdrop-filter: blur(8px);
-}
-
-.estate-mood button:hover,
-.estate-toggle:hover {
+.estate-mood button:hover {
   color: #fff;
 }
 
@@ -435,8 +444,7 @@
   color: var(--ink);
 }
 
-.estate-mood button:focus-visible,
-.estate-toggle:focus-visible {
+.estate-mood button:focus-visible {
   outline: 2px solid var(--bronze-light);
   outline-offset: 2px;
 }
@@ -947,14 +955,120 @@
     font-size: 9px;
   }
 
-  .estate-mood button,
-  .estate-toggle {
+  .estate-mood button {
     min-height: 32px;
     padding: 0 11px;
   }
 
   .estate-closing h2 {
     font-size: 56px;
+  }
+}
+
+/* =========================================================
+   SHORT VIEWPORTS (landscape phones)
+   Every block must stay exactly one viewport tall — the scroll →
+   film/camera mapping depends on it — so the card compacts instead.
+========================================================= */
+
+@media (max-height: 560px) {
+  .estate-stage,
+  .estate-block {
+    min-height: 0;
+  }
+
+  .estate-block {
+    padding: 76px 4vw 14px;
+  }
+
+  .estate-chapter,
+  .estate-chapter--right {
+    align-items: center;
+  }
+
+  .estate-card {
+    width: min(400px, 52vw);
+    max-height: calc(100svh - 92px);
+    overflow-y: auto;
+    padding: 18px 20px 12px;
+  }
+
+  .estate-card-eyebrow {
+    margin-bottom: 8px;
+  }
+
+  .estate-card h2 {
+    font-size: 28px;
+  }
+
+  .estate-card-copy {
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .estate-card-features {
+    margin-top: 8px;
+    padding-top: 4px;
+  }
+
+  .estate-card-features > span,
+  .estate-card-index {
+    display: none;
+  }
+
+  .estate-card-features ul {
+    display: flex;
+    gap: 14px;
+    margin-top: 0;
+  }
+
+  .estate-card-features li {
+    flex: 1;
+  }
+
+  .estate-card-features button {
+    min-height: 36px;
+    font-size: 10px;
+  }
+
+  .estate-intro-meta {
+    display: none;
+  }
+
+  .estate-intro h1 {
+    font-size: min(15vw, 26svh);
+  }
+
+  .estate-intro-row {
+    margin-top: 10px;
+    flex-direction: row;
+    align-items: flex-end;
+  }
+
+  .estate-statement {
+    font-size: 20px;
+  }
+
+  .estate-btn {
+    min-height: 40px;
+  }
+
+  .estate-closing h2 {
+    font-size: min(9vw, 16svh);
+  }
+
+  .estate-closing .estate-card-copy {
+    margin-bottom: 12px;
+  }
+
+  .estate-controls {
+    bottom: 12px;
+  }
+
+  .estate-feature {
+    top: 76px;
+    bottom: auto;
   }
 }
 
