@@ -1,12 +1,14 @@
 /* =========================================================
-   ESTATE EXPERIENCE — hybrid 3D walkthrough
+   ESTATE EXPERIENCE — the estate, built as you scroll
    Uses the site tokens from App.css (--ink, --cream, --bronze…)
 ========================================================= */
 
 .estate {
-  --estate-glass: rgba(18, 16, 13, 0.64);
+  --estate-glass: rgba(18, 16, 13, 0.62);
   --estate-line: rgba(238, 229, 215, 0.18);
   --estate-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --estate-progress: 0;
+  --estate-handoff: 0;
 
   position: relative;
   width: 100%;
@@ -27,175 +29,137 @@
   min-height: 560px;
 
   overflow: hidden;
+  background: #14130f;
 }
 
-.estate-stills,
-.estate-stills img,
-.estate-video,
+.estate-plan,
 .estate-canvas,
-.estate-scrim,
-.estate-hotspots {
+.estate-scrim {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
 }
 
-.estate-stills img {
-  object-fit: cover;
-  opacity: 0;
-  transform: scale(1.04);
-  transition:
-    opacity 1s ease,
-    transform 2.4s var(--estate-ease);
-}
-
-.estate-stills img.is-active {
-  opacity: 1;
-  transform: scale(1);
-}
-
 .estate-canvas {
   display: block;
   opacity: 0;
-  transition: opacity 1.2s ease;
+  transition: opacity 1.4s ease;
 }
 
 .estate--ready .estate-canvas {
   opacity: 1;
 }
 
-/* The film: a decorative, scroll-driven layer over its own poster frame */
-.estate-video {
-  display: block;
-  object-fit: cover;
-  background: transparent;
+.estate--ready .estate-plan {
   opacity: 0;
-  transition: opacity 0.9s ease;
-}
-
-.estate--ready .estate-video {
-  opacity: 1;
+  visibility: hidden;
+  transition:
+    opacity 1.4s ease,
+    visibility 0s linear 1.4s;
 }
 
 .estate-scrim {
   pointer-events: none;
   background:
-    linear-gradient(180deg, rgba(10, 9, 7, 0.55) 0%, rgba(10, 9, 7, 0) 22%),
-    linear-gradient(0deg, rgba(10, 9, 7, 0.7) 0%, rgba(10, 9, 7, 0) 38%);
+    linear-gradient(180deg, rgba(10, 9, 7, 0.5) 0%, rgba(10, 9, 7, 0) 20%),
+    linear-gradient(0deg, rgba(10, 9, 7, 0.55) 0%, rgba(10, 9, 7, 0) 32%);
 }
 
-/* ---------------- Hotspots ---------------- */
+/* ---------------- Plan (poster and fallback) ---------------- */
 
-.estate-hotspots {
-  z-index: 3;
-  pointer-events: none;
+.estate-plan {
+  background:
+    radial-gradient(ellipse at 60% 45%, rgba(185, 154, 115, 0.12), rgba(20, 19, 15, 0) 60%),
+    #14130f;
 }
 
-.hotspot {
-  position: absolute;
-  left: 0;
-  top: 0;
+.site-plan {
+  width: 100%;
+  height: 100%;
+}
 
-  display: flex;
-  align-items: center;
-  gap: 12px;
-
-  padding: 0;
-  border: 0;
-  background: none;
-  color: #fff;
-  cursor: pointer;
-
+.site-plan .plan-layer {
   opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.45s ease;
-  will-change: transform;
+  transition: opacity 1.2s ease;
 }
 
-.hotspot[data-visible='true'] {
+.site-plan .plan-layer--land,
+.site-plan:is([data-stage='1'], [data-stage='2'], [data-stage='3'], [data-stage='4'], [data-stage='5'], [data-stage='6'], [data-stage='7']) .plan-layer--prep,
+.site-plan:is([data-stage='2'], [data-stage='3'], [data-stage='4'], [data-stage='5'], [data-stage='6'], [data-stage='7']) .plan-layer--foundations,
+.site-plan:is([data-stage='3'], [data-stage='4'], [data-stage='5'], [data-stage='6'], [data-stage='7']) .plan-layer--structure,
+.site-plan:is([data-stage='4'], [data-stage='5'], [data-stage='6'], [data-stage='7']) .plan-layer--architecture,
+.site-plan:is([data-stage='5'], [data-stage='6'], [data-stage='7']) .plan-layer--landscape {
   opacity: 1;
-  pointer-events: auto;
 }
 
-.hotspot-dot {
-  position: relative;
-
-  width: 18px;
-  height: 18px;
-  margin-left: -9px;
-  margin-top: -9px;
-
-  border-radius: 50%;
-  background: var(--cream);
-  box-shadow: 0 0 0 5px rgba(238, 229, 215, 0.22), 0 4px 18px rgba(0, 0, 0, 0.45);
-
-  transition:
-    transform 0.3s var(--estate-ease),
-    background 0.3s ease;
+.plan-boundary {
+  fill: none;
+  stroke: rgba(238, 229, 215, 0.4);
+  stroke-width: 0.5;
+  stroke-dasharray: 3 2;
 }
 
-.hotspot-dot::after {
-  content: '';
-  position: absolute;
-  inset: -9px;
-  border: 1px solid rgba(238, 229, 215, 0.55);
-  border-radius: 50%;
-  animation: hotspotPulse 2.6s var(--estate-ease) infinite;
+.plan-contour {
+  fill: none;
+  stroke: rgba(238, 229, 215, 0.08);
+  stroke-width: 0.35;
 }
 
-@keyframes hotspotPulse {
-  0% {
-    transform: scale(0.6);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1.6);
-    opacity: 0;
-  }
+.plan-road {
+  fill: none;
+  stroke: rgba(238, 229, 215, 0.45);
+  stroke-width: 0.45;
 }
 
-.hotspot-label {
-  margin-top: -9px;
-  padding: 8px 12px;
-
-  background: var(--estate-glass);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--estate-line);
-
-  font-family: 'Manrope', sans-serif;
-  font-size: 11px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  white-space: nowrap;
-
-  opacity: 0;
-  transform: translateX(-6px);
-  transition:
-    opacity 0.3s ease,
-    transform 0.3s var(--estate-ease);
+.plan-plot {
+  fill: none;
+  stroke: rgba(185, 154, 115, 0.55);
+  stroke-width: 0.4;
+  stroke-dasharray: 1.6 1.2;
 }
 
-.hotspot:hover .hotspot-label,
-.hotspot:focus-visible .hotspot-label,
-.hotspot.is-open .hotspot-label {
-  opacity: 1;
-  transform: none;
+.plan-hatch-line {
+  stroke: rgba(238, 229, 215, 0.35);
+  stroke-width: 0.5;
 }
 
-.hotspot:hover .hotspot-dot,
-.hotspot.is-open .hotspot-dot {
-  transform: scale(1.18);
-  background: var(--bronze-light);
+.plan-slab {
+  stroke: rgba(238, 229, 215, 0.6);
+  stroke-width: 0.35;
 }
 
-.hotspot:focus-visible {
-  outline: none;
+.plan-upper {
+  fill: rgba(185, 154, 115, 0.22);
+  stroke: rgba(185, 154, 115, 0.8);
+  stroke-width: 0.4;
 }
 
-.hotspot:focus-visible .hotspot-dot {
-  outline: 2px solid var(--bronze-light);
-  outline-offset: 6px;
+.plan-house {
+  fill: rgba(238, 229, 215, 0.82);
+  stroke: none;
+}
+
+.plan-asphalt {
+  fill: rgba(238, 229, 215, 0.14);
+  stroke: rgba(238, 229, 215, 0.5);
+  stroke-width: 0.3;
+}
+
+.plan-lawn {
+  fill: rgba(110, 140, 82, 0.55);
+}
+
+.plan-pool {
+  fill: rgba(96, 168, 176, 0.7);
+}
+
+.plan-drive {
+  fill: rgba(238, 229, 215, 0.3);
+}
+
+.plan-tree {
+  fill: rgba(110, 140, 82, 0.75);
 }
 
 /* ---------------- Rail ---------------- */
@@ -216,7 +180,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 4px;
+  gap: 2px;
 }
 
 .estate-rail button {
@@ -224,7 +188,7 @@
   align-items: center;
   gap: 14px;
 
-  padding: 8px 0;
+  padding: 7px 0;
   border: 0;
   background: none;
   color: rgba(255, 255, 255, 0.55);
@@ -234,6 +198,7 @@
   font-size: 10px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.45);
 }
 
 .estate-rail button span {
@@ -277,106 +242,19 @@
   outline-offset: 4px;
 }
 
-/* ---------------- Feature card ---------------- */
-
-.estate-feature {
-  position: absolute;
-  z-index: 5;
-  bottom: 96px;
-  width: min(340px, calc(100% - 32px));
-}
-
-.estate-feature[data-side='right'] {
-  right: 4vw;
-}
-
-.estate-feature[data-side='left'] {
-  left: 4vw;
-}
-
-.estate-feature-card {
-  padding: 24px 24px 20px;
-
-  background: rgba(238, 229, 215, 0.94);
-  color: var(--ink);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
-
-  animation: featureIn 0.5s var(--estate-ease);
-}
-
-@keyframes featureIn {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-}
-
-.estate-feature-card > span {
-  font-size: 10px;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: var(--bronze);
-}
-
-.estate-feature-card h3 {
-  margin: 10px 0 10px;
-
-  font-family: 'Playfair Display', serif;
-  font-size: 28px;
-  font-weight: 400;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-}
-
-.estate-feature-card p {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.65;
-  color: rgba(23, 21, 18, 0.72);
-}
-
-.estate-feature-card button {
-  margin-top: 18px;
-  padding: 0 0 4px;
-  border: 0;
-  border-bottom: 1px solid var(--ink);
-  background: none;
-  color: var(--ink);
-  cursor: pointer;
-
-  display: inline-flex;
-  gap: 10px;
-  align-items: center;
-
-  font-size: 10px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-}
-
-.estate-feature-card button b {
-  font-size: 16px;
-  font-weight: 400;
-}
-
-.estate-feature-card button:focus-visible {
-  outline: 2px solid var(--bronze);
-  outline-offset: 4px;
-}
-
-/* ---------------- Controls ---------------- */
+/* ---------------- Controls, status, meter ---------------- */
 
 .estate-controls {
   position: absolute;
   z-index: 4;
   right: 4vw;
-  bottom: 32px;
+  bottom: 30px;
 
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 12px;
   max-width: calc(100% - 8vw);
 
   font-family: 'Manrope', sans-serif;
@@ -386,7 +264,12 @@
 }
 
 .estate-status {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.estate-loading b {
+  font-weight: 500;
+  color: var(--bronze-light);
 }
 
 .estate-loading::before {
@@ -407,14 +290,14 @@
   }
 }
 
-.estate-mood {
+.estate-toggle {
   display: flex;
   border: 1px solid rgba(255, 255, 255, 0.28);
   background: rgba(14, 12, 10, 0.4);
   backdrop-filter: blur(8px);
 }
 
-.estate-mood button {
+.estate-toggle button {
   min-height: 36px;
   padding: 0 14px;
   border: 0;
@@ -431,22 +314,71 @@
     color 0.25s ease;
 }
 
-.estate-mood button[aria-pressed='true'] {
+.estate-toggle button[aria-pressed='true'] {
   background: var(--cream);
   color: var(--ink);
 }
 
-.estate-mood button:hover {
+.estate-toggle button:hover {
   color: #fff;
 }
 
-.estate-mood button[aria-pressed='true']:hover {
+.estate-toggle button[aria-pressed='true']:hover {
   color: var(--ink);
 }
 
-.estate-mood button:focus-visible {
+.estate-toggle button:focus-visible {
   outline: 2px solid var(--bronze-light);
   outline-offset: 2px;
+}
+
+.estate-meter {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: rgba(238, 229, 215, 0.12);
+}
+
+.estate-meter i {
+  display: block;
+  height: 100%;
+  background: var(--bronze-light);
+  transform-origin: left center;
+  transform: scaleX(var(--estate-progress));
+}
+
+/* ---------------- Handoff ---------------- */
+
+.estate-handoff {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--cream);
+  opacity: var(--estate-handoff);
+  pointer-events: none;
+}
+
+.estate-handoff span {
+  width: 64px;
+  height: 64px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  color: var(--ink);
 }
 
 /* ---------------- Track ---------------- */
@@ -461,14 +393,19 @@
 .estate-block {
   position: relative;
   width: 100%;
-  height: 100svh;
   min-height: 560px;
-  padding: 120px 4vw 96px;
+  padding: 0 4vw;
 }
 
 /* Intro (hero) */
 
-.estate-intro {
+.estate-intro-inner {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  min-height: 560px;
+  padding: 120px 0 96px;
+
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -607,22 +544,25 @@
   outline-offset: 3px;
 }
 
-/* Chapters */
+/* Stage cards: sticky within their (tall) block, so they hold while the stage plays */
 
 .estate-chapter {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .estate-chapter--right {
   justify-content: flex-end;
-  padding-right: calc(4vw + 140px);
+  padding-right: calc(4vw + 150px);
 }
 
 .estate-card {
-  position: relative;
-  width: min(430px, 100%);
-  padding: 36px 36px 30px;
+  position: sticky;
+  top: max(120px, 24svh);
+
+  width: min(420px, 100%);
+  margin-top: max(120px, 24svh);
+  padding: 34px 34px 28px;
 
   background: var(--estate-glass);
   backdrop-filter: blur(16px) saturate(1.15);
@@ -637,14 +577,13 @@
     transform 0.9s var(--estate-ease);
 }
 
-.estate-block.is-active .estate-card,
-.estate-block.is-active .estate-closing-inner {
+.estate-block.is-active .estate-card {
   opacity: 1;
   transform: none;
 }
 
 .estate-card-eyebrow {
-  margin: 0 0 22px;
+  margin: 0 0 20px;
 
   font-size: 10px;
   letter-spacing: 0.26em;
@@ -658,89 +597,52 @@
 
   font-family: 'Playfair Display', serif;
   font-weight: 400;
-  font-size: clamp(40px, 4.2vw, 62px);
+  font-size: clamp(38px, 4vw, 58px);
   line-height: 0.92;
   letter-spacing: -0.045em;
   color: #fff;
 }
 
 .estate-card-copy {
-  margin: 22px 0 0;
-  max-width: 380px;
+  margin: 20px 0 0;
+  max-width: 370px;
 
   font-size: 15px;
   line-height: 1.7;
-  color: rgba(238, 229, 215, 0.78);
+  color: rgba(238, 229, 215, 0.8);
 }
 
-.estate-card-features {
-  margin-top: 26px;
-  padding-top: 16px;
+.estate-card-facts {
+  margin: 22px 0 0;
+  padding: 14px 0 0;
   border-top: 1px solid var(--estate-line);
-}
-
-.estate-card-features > span {
-  font-size: 10px;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: rgba(238, 229, 215, 0.5);
-}
-
-.estate-card-features ul {
-  margin: 10px 0 0;
-  padding: 0;
   list-style: none;
 }
 
-.estate-card-features button {
-  width: 100%;
-  min-height: 44px;
-  padding: 0;
-  border: 0;
-  border-bottom: 1px solid rgba(238, 229, 215, 0.1);
-  background: none;
-  color: var(--cream);
-  cursor: pointer;
+.estate-card-facts li {
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(238, 229, 215, 0.08);
 
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  font-size: 12px;
+  font-size: 11px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  text-align: left;
-
-  transition:
-    color 0.25s ease,
-    padding 0.3s var(--estate-ease);
+  color: var(--cream);
 }
 
-.estate-card-features button b {
-  font-size: 17px;
-  font-weight: 300;
-  color: var(--bronze-light);
-  transition: transform 0.3s var(--estate-ease);
-}
-
-.estate-card-features button:hover {
-  color: #fff;
-  padding-left: 6px;
-}
-
-.estate-card-features button[aria-expanded='true'] b {
-  transform: rotate(45deg);
-}
-
-.estate-card-features button:focus-visible {
-  outline: 2px solid var(--bronze-light);
-  outline-offset: 2px;
+.estate-card-facts li::before {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 1px;
+  margin-right: 12px;
+  vertical-align: 3px;
+  background: var(--bronze-light);
 }
 
 .estate-card-index {
   position: absolute;
-  top: 36px;
-  right: 36px;
+  top: 34px;
+  right: 34px;
 
   font-family: 'Playfair Display', serif;
   font-size: 14px;
@@ -751,17 +653,21 @@
 
 .estate-closing {
   display: flex;
-  align-items: center;
   justify-content: center;
   text-align: center;
 }
 
 .estate-closing-inner {
-  max-width: 640px;
+  position: sticky;
+  top: max(140px, 28svh);
+  height: fit-content;
+  max-width: 680px;
+  margin-top: max(140px, 28svh);
 
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 34px;
 
   opacity: 0;
   transform: translateY(28px);
@@ -770,45 +676,36 @@
     transform 0.9s var(--estate-ease);
 }
 
+.estate-block.is-active .estate-closing-inner {
+  /* Dissolves with the final frame into the page below */
+  opacity: calc(1 - var(--estate-handoff));
+  transform: none;
+}
+
 .estate-closing h2 {
-  font-size: clamp(56px, 8vw, 120px);
+  font-size: clamp(56px, 8vw, 116px);
   line-height: 0.84;
   text-shadow: 0 8px 40px rgba(0, 0, 0, 0.45);
 }
 
-.estate-closing .estate-card-copy {
-  max-width: 460px;
-  margin-bottom: 34px;
-  color: rgba(255, 255, 255, 0.82);
-  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
+.estate-closing .estate-card-eyebrow {
+  margin: 0;
 }
 
 .estate-closing .estate-intro-actions {
   justify-content: center;
 }
 
-/* Darken the scene behind the closing statement */
-.estate-stage::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  background: radial-gradient(ellipse at center, rgba(10, 9, 7, 0.55), rgba(10, 9, 7, 0.15) 70%);
-  opacity: 0;
-  transition: opacity 0.8s ease;
-}
-
-.estate:has(.estate-closing.is-active) .estate-stage::after {
-  opacity: 1;
-}
-
-/* Hero bottom-left wash so the title always reads */
+/* Hero wash so the title always reads over the dawn aerial */
 .estate:has(.estate-intro.is-active) .estate-scrim {
   background:
-    linear-gradient(180deg, rgba(10, 9, 7, 0.55) 0%, rgba(10, 9, 7, 0) 22%),
-    linear-gradient(0deg, rgba(10, 9, 7, 0.78) 0%, rgba(10, 9, 7, 0) 50%),
-    linear-gradient(90deg, rgba(10, 9, 7, 0.35) 0%, rgba(10, 9, 7, 0) 45%);
+    linear-gradient(180deg, rgba(10, 9, 7, 0.5) 0%, rgba(10, 9, 7, 0) 22%),
+    linear-gradient(0deg, rgba(10, 9, 7, 0.72) 0%, rgba(10, 9, 7, 0) 50%),
+    linear-gradient(90deg, rgba(10, 9, 7, 0.3) 0%, rgba(10, 9, 7, 0) 45%);
+}
+
+.estate:has(.estate-closing.is-active) .estate-scrim {
+  background: radial-gradient(ellipse at center, rgba(10, 9, 7, 0.5), rgba(10, 9, 7, 0.1) 70%);
 }
 
 /* =========================================================
@@ -817,7 +714,11 @@
 
 @media (max-width: 900px) {
   .estate-block {
-    padding: 104px 6vw 88px;
+    padding: 0 6vw;
+  }
+
+  .estate-intro-inner {
+    padding: 104px 0 88px;
   }
 
   .estate-rail {
@@ -843,12 +744,16 @@
 }
 
 /* =========================================================
-   MOBILE
+   MOBILE: cards sit low so the framing above stays visible
 ========================================================= */
 
 @media (max-width: 640px) {
   .estate-block {
-    padding: 92px 16px 84px;
+    padding: 0 16px;
+  }
+
+  .estate-intro-inner {
+    padding: 92px 0 84px;
   }
 
   .estate-rail {
@@ -883,118 +788,84 @@
     flex: 1 1 100%;
   }
 
-  /* Cards sit low so the camera framing stays visible above */
   .estate-chapter,
   .estate-chapter--right {
-    align-items: flex-end;
     justify-content: stretch;
+    padding-right: 16px;
   }
 
+  /* Held in the lower half of the screen, leaving the upper half to the estate */
   .estate-card {
+    top: max(50svh, 300px);
     width: 100%;
-    padding: 24px 22px 18px;
+    margin-top: max(50svh, 300px);
+    max-height: calc(50svh - 70px);
+    overflow: hidden;
+    padding: 22px 20px 16px;
   }
 
   .estate-card-eyebrow {
-    margin-bottom: 14px;
+    margin-bottom: 12px;
   }
 
   .estate-card h2 {
-    font-size: 36px;
+    font-size: 34px;
   }
 
   .estate-card-copy {
-    margin-top: 14px;
-    font-size: 14px;
+    margin-top: 12px;
+    font-size: 13.5px;
     line-height: 1.6;
   }
 
-  .estate-card-features {
-    margin-top: 16px;
-    padding-top: 10px;
-  }
-
-  .estate-card-features > span {
+  .estate-card-facts {
     display: none;
   }
 
-  .estate-card-features ul {
-    margin-top: 0;
-    display: flex;
-    gap: 16px;
-  }
-
-  .estate-card-features li {
-    flex: 1;
-  }
-
-  .estate-card-features button {
-    font-size: 10px;
-  }
-
   .estate-card-index {
-    top: 24px;
-    right: 22px;
-  }
-
-  .estate-feature,
-  .estate-feature[data-side='left'],
-  .estate-feature[data-side='right'] {
-    top: 84px;
-    bottom: auto;
-    left: 16px;
-    right: 16px;
-    width: auto;
+    top: 22px;
+    right: 20px;
   }
 
   .estate-controls {
     left: 16px;
     right: 16px;
-    bottom: 22px;
+    bottom: 18px;
     justify-content: flex-end;
     font-size: 9px;
   }
 
-  .estate-mood button {
+  .estate-toggle button {
     min-height: 32px;
     padding: 0 11px;
   }
 
   .estate-closing h2 {
-    font-size: 56px;
+    font-size: 54px;
   }
 }
 
 /* =========================================================
    SHORT VIEWPORTS (landscape phones)
-   Every block must stay exactly one viewport tall — the scroll →
-   film/camera mapping depends on it — so the card compacts instead.
 ========================================================= */
 
 @media (max-height: 560px) {
   .estate-stage,
-  .estate-block {
+  .estate-intro-inner {
     min-height: 0;
   }
 
-  .estate-block {
-    padding: 76px 4vw 14px;
-  }
-
-  .estate-chapter,
-  .estate-chapter--right {
-    align-items: center;
+  .estate-intro-inner {
+    padding: 76px 0 14px;
   }
 
   .estate-card {
+    top: 76px;
+    margin-top: 76px;
     width: min(400px, 52vw);
     max-height: calc(100svh - 92px);
     overflow-y: auto;
-    padding: 18px 20px 12px;
-  }
-
-  .estate-card-eyebrow {
-    margin-bottom: 8px;
+    padding: 16px 20px 12px;
   }
 
   .estate-card h2 {
@@ -1007,31 +878,8 @@
     line-height: 1.5;
   }
 
-  .estate-card-features {
-    margin-top: 8px;
-    padding-top: 4px;
-  }
-
-  .estate-card-features > span,
-  .estate-card-index {
-    display: none;
-  }
-
-  .estate-card-features ul {
-    display: flex;
-    gap: 14px;
-    margin-top: 0;
-  }
-
-  .estate-card-features li {
-    flex: 1;
-  }
-
-  .estate-card-features button {
-    min-height: 36px;
-    font-size: 10px;
-  }
-
+  .estate-card-facts,
+  .estate-card-index,
   .estate-intro-meta {
     display: none;
   }
@@ -1054,21 +902,18 @@
     min-height: 40px;
   }
 
+  .estate-closing-inner {
+    top: 70px;
+    margin-top: 70px;
+    gap: 16px;
+  }
+
   .estate-closing h2 {
     font-size: min(9vw, 16svh);
   }
 
-  .estate-closing .estate-card-copy {
-    margin-bottom: 12px;
-  }
-
   .estate-controls {
     bottom: 12px;
-  }
-
-  .estate-feature {
-    top: 76px;
-    bottom: auto;
   }
 }
 
@@ -1077,19 +922,18 @@
 ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
-  .estate-stills img,
   .estate-card,
   .estate-closing-inner {
     transform: none !important;
     transition: opacity 0.3s ease;
   }
 
-  .hotspot-dot::after,
-  .estate-loading::before {
-    animation: none;
+  .estate-canvas,
+  .site-plan .plan-layer {
+    transition: none;
   }
 
-  .estate-feature-card {
+  .estate-loading::before {
     animation: none;
   }
 }

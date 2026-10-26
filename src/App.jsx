@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import EstateExperience from './experience/EstateExperience.jsx'
+import SitePlan from './experience/SitePlan.jsx'
 
 const IMG = '/Images'
 
@@ -37,11 +38,180 @@ const amenities = [
   '24h concierge',
 ]
 
+// Views of the estate, captured from the same 3D model as the film
+// (scripts/capture-gallery.mjs). Each has a 1x and 2x width.
+const STILLS = {
+  aerial: {
+    src: 'estate-aerial',
+    widths: [1200, 2400],
+    ratio: [16, 9],
+    caption: 'The estate at golden hour',
+    alt: 'Aerial view of the VÉRONA estate at golden hour: flat-roofed villas, gardens and pools along one avenue, ringed by woodland.',
+  },
+  hero: {
+    src: 'hero-dusk',
+    widths: [1200, 2400],
+    ratio: [16, 9],
+    caption: 'The principal villa, at dusk',
+    alt: 'The principal villa at dusk, its glazed ground floor and upper rooms lit behind a clipped hedge and a specimen tree.',
+  },
+  fins: {
+    src: 'oak-fins',
+    widths: [750, 1500],
+    ratio: [3, 4],
+    caption: 'Oak fins over the upper floor',
+    alt: 'Close view of vertical oak fins shading upper-floor glazing, above the ground-floor terrace in evening light.',
+  },
+  pool: {
+    src: 'pool-terrace',
+    widths: [1000, 2000],
+    ratio: [4, 3],
+    caption: 'Pool terrace, west light',
+    alt: 'A villa seen across its pool and stone terrace in low evening sun.',
+  },
+  avenue: {
+    src: 'avenue',
+    widths: [750, 1500],
+    ratio: [3, 4],
+    caption: 'The cypress avenue',
+    alt: 'The estate road at golden hour, lined with cypress trees, street lights and footpaths.',
+  },
+  garden: {
+    src: 'garden-dusk',
+    widths: [1000, 2000],
+    ratio: [4, 3],
+    caption: 'Garden elevation, dusk',
+    alt: 'The garden side of the principal villa at dusk: oak fins over lit rooms and a long terrace.',
+  },
+  club: {
+    src: 'club-dusk',
+    widths: [1200, 2400],
+    ratio: [16, 9],
+    caption: 'The residents’ club',
+    alt: 'The residents’ club, a long glazed pavilion with its pool, lit at dusk.',
+  },
+  foundations: {
+    src: 'foundations',
+    widths: [1000, 2000],
+    ratio: [4, 3],
+    caption: 'A ground slab, poured over its reinforcement',
+    alt: 'A villa’s ground-floor slab during the pour: finished concrete beside the steel reinforcement mat, framed by timber edge formwork.',
+  },
+}
+
+const GALLERY = ['aerial', 'garden', 'fins', 'pool', 'avenue']
+
+function Still({ still, sizes, className = '', loading = 'lazy' }) {
+  const [small, large] = still.widths
+  return (
+    <img
+      className={className}
+      src={`${IMG}/estate/${still.src}-${small}.webp`}
+      srcSet={`${IMG}/estate/${still.src}-${small}.webp ${small}w, ${IMG}/estate/${still.src}-${large}.webp ${large}w`}
+      sizes={sizes}
+      width={still.ratio[0] * 100}
+      height={still.ratio[1] * 100}
+      alt={still.alt}
+      loading={loading}
+      decoding="async"
+    />
+  )
+}
+
+function SectionHead({ index, label, tone }) {
+  return (
+    <div className={`section-head ${tone ? `section-head--${tone}` : ''}`}>
+      <span>{index}</span>
+      <i aria-hidden="true" />
+      <span>{label}</span>
+    </div>
+  )
+}
+
+// A gallery image that opens the viewer. The image itself is the button.
+function GalleryFigure({ id, sizes, onOpen, className = '' }) {
+  const still = STILLS[id]
+  const n = GALLERY.indexOf(id) + 1
+  return (
+    <figure className={`gallery-figure ${className}`}>
+      <button type="button" className="gallery-open" onClick={() => onOpen(id)} aria-label={`View larger: ${still.caption}`}>
+        <Still still={still} sizes={sizes} />
+      </button>
+      <figcaption>
+        <span>{still.caption}</span>
+        <span>{String(n).padStart(2, '0')}</span>
+      </figcaption>
+    </figure>
+  )
+}
+
+// Full-screen viewer on the native <dialog>: Escape closes it, focus returns to the
+// image that opened it, and the arrow keys move through the set.
+function Lightbox({ openId, onClose, onMove }) {
+  const ref = useRef(null)
+  useEffect(() => {
+    const dialog = ref.current
+    if (!dialog) return
+    if (openId && !dialog.open) dialog.showModal()
+    if (!openId && dialog.open) dialog.close()
+  }, [openId])
+
+  const still = openId ? STILLS[openId] : null
+  const index = openId ? GALLERY.indexOf(openId) : 0
+
+  return (
+    <dialog
+      ref={ref}
+      className="lightbox"
+      aria-label="Estate gallery"
+      onClose={onClose}
+      onClick={(event) => {
+        if (event.target === ref.current) onClose()
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'ArrowRight') onMove(1)
+        if (event.key === 'ArrowLeft') onMove(-1)
+      }}
+    >
+      {still && (
+        <figure className="lightbox-figure">
+          <img
+            src={`${IMG}/estate/${still.src}-${still.widths[1]}.webp`}
+            width={still.ratio[0] * 100}
+            height={still.ratio[1] * 100}
+            alt={still.alt}
+          />
+          <figcaption>
+            <span>{still.caption}</span>
+            <span>
+              {String(index + 1).padStart(2, '0')} / {String(GALLERY.length).padStart(2, '0')}
+            </span>
+          </figcaption>
+        </figure>
+      )}
+      <div className="lightbox-controls">
+        <button type="button" onClick={() => onMove(-1)} aria-label="Previous image">
+          ←
+        </button>
+        <button type="button" onClick={() => onMove(1)} aria-label="Next image">
+          →
+        </button>
+        <button type="button" className="lightbox-close" onClick={onClose} autoFocus>
+          Close
+        </button>
+      </div>
+    </dialog>
+  )
+}
+
 function App() {
   const [menu, setMenu] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [interest, setInterest] = useState('')
   const [enquiry, setEnquiry] = useState(null)
+  const [viewing, setViewing] = useState(null)
+  const [preview, setPreview] = useState(0)
+  const sentRef = useRef(null)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 80)
@@ -58,7 +228,19 @@ function App() {
     }
   }, [menu])
 
+  // After sending, move focus to the confirmation so it is announced and reachable.
+  useEffect(() => {
+    if (enquiry) sentRef.current?.focus()
+  }, [enquiry])
+
   const closeMenu = () => setMenu(false)
+
+  const moveViewer = (step) =>
+    setViewing((id) => {
+      if (!id) return id
+      const i = GALLERY.indexOf(id)
+      return GALLERY[(i + step + GALLERY.length) % GALLERY.length]
+    })
 
   return (
     <div className="verona">
@@ -72,7 +254,8 @@ function App() {
         </a>
 
         <nav className="nav-links" aria-label="Primary">
-          <a href="#walkthrough">Walkthrough</a>
+          <a href="#walkthrough">The Estate</a>
+          <a href="#gallery">Gallery</a>
           <a href="#residences">Residences</a>
           <a href="#philosophy">Philosophy</a>
           <a href="#experience">Experience</a>
@@ -106,78 +289,45 @@ function App() {
         <nav className="mobile-nav-inner" aria-label="Mobile">
           <p className="mobile-nav-kicker">VÉRONA ESTATES / 2026</p>
 
-          <a href="#walkthrough" onClick={closeMenu}>
-            <span>01</span>
-            Walkthrough
-            <b>↗</b>
-          </a>
-
-          <a href="#residences" onClick={closeMenu}>
-            <span>02</span>
-            Residences
-            <b>↗</b>
-          </a>
-
-          <a href="#philosophy" onClick={closeMenu}>
-            <span>03</span>
-            Philosophy
-            <b>↗</b>
-          </a>
-
-          <a href="#experience" onClick={closeMenu}>
-            <span>04</span>
-            Experience
-            <b>↗</b>
-          </a>
-
-          <a href="#address" onClick={closeMenu}>
-            <span>05</span>
-            The Address
-            <b>↗</b>
-          </a>
-
-          <a href="#enquire" onClick={closeMenu}>
-            <span>06</span>
-            Private Enquiry
-            <b>↗</b>
-          </a>
+          {[
+            ['#walkthrough', 'The Estate'],
+            ['#gallery', 'Gallery'],
+            ['#residences', 'Residences'],
+            ['#philosophy', 'Philosophy'],
+            ['#experience', 'Experience'],
+            ['#address', 'The Address'],
+            ['#enquire', 'Private Enquiry'],
+          ].map(([href, label], i) => (
+            <a key={href} href={href} onClick={closeMenu}>
+              <span>{String(i + 1).padStart(2, '0')}</span>
+              {label}
+              <b>↗</b>
+            </a>
+          ))}
         </nav>
       </div>
 
       <main id="top">
 
-        {/* ================= HERO + 3D WALKTHROUGH ================= */}
+        {/* ================= HERO: THE ESTATE FILM ================= */}
 
         <EstateExperience />
 
-        {/* ================= OPENING STATEMENT ================= */}
+        {/* ================= PROLOGUE: continues from the film's cream handoff ================= */}
 
-        <section className="manifesto">
+        <section className="prologue" aria-labelledby="prologue-title">
+          <div className="prologue-thread" aria-hidden="true" />
 
-          <div className="manifesto-top">
-            <span>01 / 06</span>
-            <span>THE VÉRONA STANDARD</span>
-          </div>
+          <p className="eyebrow prologue-kicker">The VÉRONA standard</p>
 
-          <div className="manifesto-grid">
+          <div className="prologue-grid">
+            <h2 id="prologue-title">
+              We create <i>places</i>
+              <br />
+              worth coming <i>home to.</i>
+            </h2>
 
-            <div className="manifesto-title">
-              <p className="eyebrow">A DIFFERENT STANDARD</p>
-
-              <h2>
-                We create
-                <br />
-                <i>places</i>
-                <br />
-                worth coming
-                <br />
-                <i>home to.</i>
-              </h2>
-            </div>
-
-            <div className="manifesto-copy">
-              <div className="copy-number">01</div>
-
+            <div className="prologue-copy">
               <p className="large-copy">
                 VÉRONA is a collection of residences shaped by architecture,
                 light and an uncompromising attention to detail.
@@ -191,402 +341,284 @@ function App() {
 
               <a href="#philosophy" className="under-link">
                 <span>Discover our philosophy</span>
-                <span>↗</span>
+                <span aria-hidden="true">↗</span>
               </a>
             </div>
-
           </div>
 
-          <div className="manifesto-bottom">
-            <span>ARCHITECTURE</span>
-            <span>FORM</span>
-            <span>LIGHT</span>
-            <span>MATERIAL</span>
-            <span>SPACE</span>
-          </div>
-
+          <ul className="prologue-words" aria-label="Principles">
+            <li>Architecture</li>
+            <li>Form</li>
+            <li>Light</li>
+            <li>Material</li>
+            <li>Space</li>
+          </ul>
         </section>
 
-        {/* ================= FULL BLEED DETAIL ================= */}
+        {/* ================= GALLERY ================= */}
 
-        <section className="cinema-image">
-          <img src={`${IMG}/detail.jpg`} alt="Architectural detail" loading="lazy" decoding="async" />
-
-          <div className="cinema-overlay" />
-
-          <div className="cinema-caption">
-            <span>THE LANGUAGE OF MATERIAL</span>
-            <span>02 / 06</span>
+        <section id="gallery" className="gallery" aria-labelledby="gallery-title">
+          <div className="gallery-head">
+            <SectionHead index="01" label="Gallery" />
+            <h2 id="gallery-title">
+              The estate,
+              <br />
+              <i>in its own light.</i>
+            </h2>
+            <p>
+              Seven villas and a residents’ club on one landscape, seen at
+              golden hour and as the lights come on.
+            </p>
           </div>
 
-          <div className="cinema-word">
-            FORM
+          <GalleryFigure id="aerial" className="gallery-figure--wide" sizes="100vw" onOpen={setViewing} />
+
+          <div className="gallery-row gallery-row--a">
+            <GalleryFigure id="garden" className="g-hero" sizes="(max-width: 760px) 100vw, 62vw" onOpen={setViewing} />
+            <GalleryFigure id="fins" className="g-fins" sizes="(max-width: 760px) 100vw, 24vw" onOpen={setViewing} />
           </div>
+
+          <div className="gallery-row gallery-row--b">
+            <p className="gallery-note">
+              One architectural language — travertine, mineral render, oak and
+              glass — repeated with care, never copied, from plot to plot.
+            </p>
+            <GalleryFigure id="pool" className="g-pool" sizes="(max-width: 760px) 100vw, 56vw" onOpen={setViewing} />
+          </div>
+
+          <div className="gallery-row gallery-row--c">
+            <GalleryFigure id="avenue" className="g-avenue" sizes="(max-width: 760px) 100vw, 30vw" onOpen={setViewing} />
+            <p className="gallery-note gallery-note--arrival">
+              <span className="eyebrow">Arrival</span>
+              The road is surfaced from the gate inwards; a cypress avenue and
+              lit footpaths lead every resident home.
+            </p>
+          </div>
+
+          <p className="gallery-credit">
+            Computer-generated views of the VÉRONA concept estate, taken from the
+            same model as the film above. Illustrative only.
+          </p>
         </section>
+
+        <Lightbox openId={viewing} onClose={() => setViewing(null)} onMove={moveViewer} />
 
         {/* ================= RESIDENCES ================= */}
 
-        <section id="residences" className="collection">
-
-          <div className="collection-heading">
-
-            <div className="collection-index">
-              <span>02 / 06</span>
-              <span>THE COLLECTION</span>
-            </div>
-
-            <div className="collection-title">
-              <p className="eyebrow">PRIVATE RESIDENCES</p>
-
-              <h2>
-                Made for
-                <br />
-                <i>living.</i>
-              </h2>
-            </div>
-
-            <p className="collection-intro">
+        <section id="residences" className="collection" aria-labelledby="collection-title">
+          <div className="collection-head">
+            <SectionHead index="02" label="The Collection" tone="light" />
+            <h2 id="collection-title">
+              Made for <i>living.</i>
+            </h2>
+            <p>
               Three distinct expressions of the VÉRONA philosophy. Each one
               conceived as a complete world of its own.
             </p>
-
           </div>
 
-          <div className="residence-stack">
+          <div className="collection-body">
+            <div className="collection-preview" aria-hidden="true">
+              {residences.map((residence, index) => (
+                <img
+                  key={residence.no}
+                  src={residence.image}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  className={index === preview ? 'is-active' : ''}
+                />
+              ))}
+            </div>
 
-            {residences.map((residence, index) => (
-              <article
-                className={`residence residence--${index + 1}`}
-                key={residence.no}
-              >
-
-                <div className="residence-number">
-                  {residence.no}
-                </div>
-
-                <a
-                  href="#enquire"
-                  className="residence-image"
-                  onClick={() => setInterest(residence.title)}
-                  aria-label={`Enquire about ${residence.title}`}
-                >
-                  <img src={residence.image} alt="" loading="lazy" />
-
-                  <div className="residence-hover" aria-hidden="true">
-                    <span>ENQUIRE</span>
-                    <strong>↗</strong>
-                  </div>
-                </a>
-
-                <div className="residence-details">
-
-                  <div className="residence-title">
-                    <span>{residence.type}</span>
-                    <h3>{residence.title}</h3>
-                    <p>{residence.location}</p>
-                  </div>
-
-                  <div className="residence-side">
-                    <span>VÉRONA / {residence.no}</span>
-                    <a
-                      href="#enquire"
-                      className="residence-link"
-                      onClick={() => setInterest(residence.title)}
-                    >
-                      ENQUIRE ↗
-                    </a>
-                  </div>
-
-                </div>
-
-              </article>
-            ))}
-
+            <ol className="collection-list">
+              {residences.map((residence, index) => (
+                <li key={residence.no} className={index === preview ? 'is-active' : ''}>
+                  <a
+                    href="#enquire"
+                    className="collection-item"
+                    onClick={() => setInterest(residence.title)}
+                    onMouseEnter={() => setPreview(index)}
+                    onFocus={() => setPreview(index)}
+                    aria-label={`Enquire about ${residence.title}, ${residence.type.toLowerCase()}, ${residence.location}`}
+                  >
+                    <img className="collection-inline" src={residence.image} alt="" loading="lazy" decoding="async" />
+                    <span className="collection-no">{residence.no}</span>
+                    <span className="collection-title">{residence.title}</span>
+                    <span className="collection-meta">
+                      <span>{residence.type}</span>
+                      <span>{residence.location}</span>
+                    </span>
+                    <span className="collection-cta" aria-hidden="true">
+                      Enquire <b>↗</b>
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ol>
           </div>
-
-        </section>
-
-        {/* ================= BIG TYPOGRAPHY BREAK ================= */}
-
-        <section className="type-break">
-
-          <div className="type-break-small">
-            <span>THE VÉRONA IDEA</span>
-            <span>MMXXIV</span>
-          </div>
-
-          <h2>
-            <span>Luxury</span>
-            <i>is</i>
-            <span>space.</span>
-          </h2>
-
-          <div className="type-break-bottom">
-            <span>QUIET / CONSIDERED / TIMELESS</span>
-            <span>03 / 06</span>
-          </div>
-
         </section>
 
         {/* ================= PHILOSOPHY ================= */}
 
-        <section id="philosophy" className="philosophy">
-
-          <div className="philosophy-photo">
-            <img src={`${IMG}/living-room.jpg`} alt="Luxury VÉRONA interior" loading="lazy" decoding="async" />
-
-            <div className="photo-index">
-              <span>03</span>
-              <span>INTERIORS</span>
-            </div>
+        <section id="philosophy" className="philosophy" aria-labelledby="philosophy-title">
+          <div className="philosophy-quote">
+            <SectionHead index="03" label="The VÉRONA Idea" />
+            <p className="philosophy-pull">
+              Luxury <i>is</i> space.
+            </p>
+            <span className="philosophy-tag">Quiet / Considered / Timeless</span>
           </div>
 
-          <div className="philosophy-panel">
+          <div className="philosophy-grid">
+            <figure className="philosophy-figure">
+              <Still still={STILLS.foundations} sizes="(max-width: 760px) 100vw, 46vw" />
+              <figcaption>{STILLS.foundations.caption}</figcaption>
+            </figure>
 
-            <div className="panel-top">
-              <span>03 / 06</span>
-              <span>THE PHILOSOPHY</span>
-            </div>
-
-            <div className="panel-main">
-
-              <p className="eyebrow">QUIET LUXURY</p>
-
-              <h2>
-                Less
+            <div className="philosophy-text">
+              <p className="eyebrow">Quiet luxury</p>
+              <h2 id="philosophy-title">
+                Less <i>noise.</i>
                 <br />
-                <i>noise.</i>
-                <br />
-                More
-                <br />
-                <i>life.</i>
+                More <i>life.</i>
               </h2>
-
-              <p className="panel-copy">
+              <p className="philosophy-copy">
                 We believe the most luxurious spaces are the ones that allow
                 life to take centre stage.
               </p>
 
+              <ol className="principles">
+                <li>
+                  <span>01</span>
+                  Thoughtful architecture
+                </li>
+                <li>
+                  <span>02</span>
+                  Timeless materials
+                </li>
+                <li>
+                  <span>03</span>
+                  Effortless living
+                </li>
+              </ol>
             </div>
-
-            <div className="panel-stats">
-
-              <div>
-                <strong>01</strong>
-                <span>THOUGHTFUL<br />ARCHITECTURE</span>
-              </div>
-
-              <div>
-                <strong>02</strong>
-                <span>TIMELESS<br />MATERIALS</span>
-              </div>
-
-              <div>
-                <strong>03</strong>
-                <span>EFFORTLESS<br />LIVING</span>
-              </div>
-
-            </div>
-
           </div>
-
         </section>
 
-        {/* ================= INTERIOR EDITORIAL ================= */}
+        {/* ================= INTERIORS ================= */}
 
-        <section className="editorial">
-
-          <div className="editorial-head">
-            <span>04 / 06</span>
-            <p className="eyebrow">THE INTERIORS</p>
-            <span>SPACES WITH SOUL</span>
+        <section className="interiors" aria-labelledby="interiors-title">
+          <div className="interiors-text">
+            <SectionHead index="04" label="The Interiors" />
+            <h2 id="interiors-title">
+              Spaces <i>with soul.</i>
+            </h2>
+            <p>Rooms designed around the way you actually live.</p>
+            <span className="interiors-tag">Warm materials / Natural light / Restraint</span>
+            <p className="interiors-credit">
+              Interior mood imagery, illustrating the direction. Not photographs of the residences.
+            </p>
           </div>
 
-          <div className="editorial-layout">
-
-            <div className="editorial-main">
-              <img src={`${IMG}/bedroom.jpg`} alt="VÉRONA bedroom" loading="lazy" decoding="async" />
-
-              <div className="editorial-label">
-                <span>01</span>
-                <strong>THE PRIVATE QUARTERS</strong>
-              </div>
-            </div>
-
-            <div className="editorial-copy">
-              <p>
-                Rooms designed around the way you actually live.
-              </p>
-
-              <span>
-                WARM MATERIALS / NATURAL LIGHT / RESTRAINT
-              </span>
-            </div>
-
-            <div className="editorial-small">
-              <img src={`${IMG}/kitchen.jpg`} alt="VÉRONA kitchen" loading="lazy" decoding="async" />
-
-              <div className="editorial-label">
-                <span>02</span>
-                <strong>THE KITCHEN</strong>
-              </div>
-            </div>
-
-          </div>
-
+          <figure className="interiors-a">
+            <img src={`${IMG}/living-room.jpg`} alt="Interior mood: a living room in warm timber and soft evening light." loading="lazy" decoding="async" width="736" height="589" />
+            <figcaption>Living</figcaption>
+          </figure>
+          <figure className="interiors-b">
+            <img src={`${IMG}/bedroom.jpg`} alt="Interior mood: a bedroom with warm, low lighting and natural textiles." loading="lazy" decoding="async" width="736" height="1307" />
+            <figcaption>Private quarters</figcaption>
+          </figure>
+          <figure className="interiors-c">
+            <img src={`${IMG}/kitchen.jpg`} alt="Interior mood: a kitchen in stone and dark timber." loading="lazy" decoding="async" width="736" height="1104" />
+            <figcaption>The kitchen</figcaption>
+          </figure>
         </section>
 
         {/* ================= EXPERIENCE ================= */}
 
-        <section id="experience" className="experience">
+        <section id="experience" className="experience" aria-labelledby="experience-title">
+          <figure className="experience-figure">
+            <Still still={STILLS.club} sizes="(max-width: 760px) 100vw, 58vw" />
+            <figcaption>{STILLS.club.caption}</figcaption>
+          </figure>
 
-          <div className="experience-image">
-            <img src={`${IMG}/pool.jpg`} alt="VÉRONA infinity pool" loading="lazy" decoding="async" />
+          <div className="experience-text">
+            <SectionHead index="05" label="Beyond the Residence" tone="light" />
+            <h2 id="experience-title">
+              Every <i>moment,</i>
+              <br />
+              considered.
+            </h2>
+            <p>
+              A private world of spaces designed to make everyday life feel
+              extraordinary without ever demanding attention.
+            </p>
 
-            <div className="experience-image-word">
-              EXPERIENCE
-            </div>
-          </div>
-
-          <div className="experience-content">
-
-            <div className="experience-top">
-              <span>05 / 06</span>
-              <span>BEYOND THE RESIDENCE</span>
-            </div>
-
-            <div className="experience-heading">
-
-              <p className="eyebrow">THE EXPERIENCE</p>
-
-              <h2>
-                Every
-                <br />
-                <i>moment,</i>
-                <br />
-                considered.
-              </h2>
-
-              <p>
-                A private world of spaces designed to make everyday life feel
-                extraordinary without ever demanding attention.
-              </p>
-
-            </div>
-
-            <div className="amenity-list">
-
+            <ul className="amenity-list">
               {amenities.map((item, index) => (
-                <div className="amenity-row" key={item}>
-                  <span>0{index + 1}</span>
-                  <strong>{item}</strong>
-                  <span>↗</span>
-                </div>
+                <li key={item}>
+                  <span>{String(index + 1).padStart(2, '0')}</span>
+                  {item}
+                </li>
               ))}
-
-            </div>
-
+            </ul>
           </div>
-
-        </section>
-
-        {/* ================= IMAGE TRIPTYCH ================= */}
-
-        <section className="triptych">
-
-          <div>
-            <img src={`${IMG}/clubhouse.jpg`} alt="VÉRONA clubhouse" loading="lazy" decoding="async" />
-            <span>THE CLUBHOUSE</span>
-          </div>
-
-          <div>
-            <img src={`${IMG}/amenity.jpg`} alt="VÉRONA gardens" loading="lazy" decoding="async" />
-            <span>THE GARDENS</span>
-          </div>
-
-          <div>
-            <img src={`${IMG}/location.jpg`} alt="VÉRONA location" loading="lazy" decoding="async" />
-            <span>THE ADDRESS</span>
-          </div>
-
         </section>
 
         {/* ================= ADDRESS ================= */}
 
-        <section id="address" className="address">
+        <section id="address" className="address" aria-labelledby="address-title">
+          <div className="address-text">
+            <SectionHead index="06" label="The Address" />
+            <h2 id="address-title">
+              The city
+              <br />
+              <i>at your door.</i>
+            </h2>
+            <p className="address-copy">
+              VÉRONA places you within the capital's most sought-after
+              corridors — close to the places that matter, yet removed
+              enough to feel entirely your own.
+            </p>
 
-          <div className="address-content">
-
-            <div className="address-top">
-              <span>06 / 06</span>
-              <span>THE ADDRESS</span>
-            </div>
-
-            <div className="address-main">
-
-              <p className="eyebrow">POSITIONED WITH INTENT</p>
-
-              <h2>
-                The city
-                <br />
-                <i>at your door.</i>
-              </h2>
-
-              <p className="address-copy">
-                VÉRONA places you within the capital's most sought-after
-                corridors — close to the places that matter, yet removed
-                enough to feel entirely your own.
-              </p>
-
-            </div>
-
-            <div className="address-locations">
-
+            <dl className="address-locations">
               <div>
-                <span>01</span>
-                <p>GURUGRAM</p>
-                <strong>Golf Course Road</strong>
+                <dt>Gurugram</dt>
+                <dd>Golf Course Road</dd>
               </div>
-
               <div>
-                <span>02</span>
-                <p>NEW DELHI</p>
-                <strong>South Delhi</strong>
+                <dt>New Delhi</dt>
+                <dd>South Delhi</dd>
               </div>
-
-            </div>
-
+            </dl>
           </div>
 
-          <div className="address-photo">
-            <img src={`${IMG}/location.jpg`} alt="Gurugram skyline" loading="lazy" decoding="async" />
-
-            <div className="address-marker">
-              <span>V</span>
+          <figure className="address-plan">
+            <div className="address-plan-frame">
+              <SitePlan stage={7} />
             </div>
-
-            <div className="address-photo-caption">
-              <span>THE CAPITAL / INDIA</span>
-              <span>28°27′N 77°04′E</span>
-            </div>
-          </div>
-
+            <figcaption>
+              <span>The estate master plan</span>
+              <span>The capital / India · 28°27′N 77°04′E</span>
+            </figcaption>
+          </figure>
         </section>
 
         {/* ================= FINAL CTA ================= */}
 
-        <section id="enquire" className="final-cta">
+        <section id="enquire" className="final-cta" aria-labelledby="enquire-title">
 
-          <img src={`${IMG}/hero.jpg`} alt="" loading="lazy" decoding="async" />
+          <Still still={STILLS.hero} sizes="100vw" className="final-image" />
 
           <div className="final-overlay" />
 
           <div className="final-content">
 
             <div className="final-intro">
-              <p className="eyebrow">PRIVATE VIEWINGS</p>
+              <p className="eyebrow">Private viewings</p>
 
-              <h2>
+              <h2 id="enquire-title">
                 Begin your
                 <br />
                 <i>next chapter.</i>
@@ -601,7 +633,7 @@ function App() {
             {enquiry ? (
               <div className="enquiry enquiry--sent" role="status">
                 <p className="eyebrow">THANK YOU{enquiry.name ? `, ${enquiry.name.toUpperCase()}` : ''}</p>
-                <h3>Your enquiry is ready.</h3>
+                <h3 ref={sentRef} tabIndex={-1}>Your enquiry is ready.</h3>
                 <p>
                   VÉRONA is a concept demo by JynxBuilds, so nothing has been
                   sent. On a live site this would go straight to the sales
@@ -689,19 +721,20 @@ function App() {
 
       <footer className="footer">
 
-        <div className="footer-giant">
+        <div className="footer-giant" aria-hidden="true">
           VÉRONA
         </div>
 
         <div className="footer-grid">
 
           <div className="footer-brand">
-            <div className="footer-symbol">V</div>
+            <div className="footer-symbol" aria-hidden="true">V</div>
             <span>VÉRONA ESTATES</span>
           </div>
 
           <div className="footer-column">
             <span>EXPLORE</span>
+            <a href="#gallery">Gallery</a>
             <a href="#residences">Residences</a>
             <a href="#philosophy">Philosophy</a>
             <a href="#experience">Experience</a>
@@ -726,8 +759,8 @@ function App() {
 
         <p className="footer-disclaimer">
           VÉRONA Estates is a fictional brand created by JynxBuilds as a
-          concept demo. Residences, locations, imagery and the 3D residence are
-          illustrative and do not represent real listings.
+          concept demo. Residences, locations, imagery and the 3D estate are
+          illustrative and do not represent real listings or a real development.
         </p>
 
         <div className="footer-bottom">
